@@ -1,0 +1,80 @@
+server:
+  port: 8082
+  springdoc:
+    api-docs:
+      enabled: true
+    swagger-ui:
+      enabled: true
+    show-login-endpoint: true
+    writer-with-default-pretty-printer: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+spring:
+  application:
+    name: propietario
+  profiles:
+    active: dev
+
+  # CONFIGURACIÓN DE BASE DE DATOS
+  datasource:
+    url: jdbc:h2:file:./data/propietariodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      # create-drop limpia la tabla vieja de 255 caracteres y crea la de tipo TEXT/CLOB
+      ddl-auto: create-drop
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  # Si no tienes Redis/JDBC configurado para sesiones, déjalo en none para que no de error
+  session:
+    store-type: none
+
+  security:
+    user:
+      name: fade
+      password: 123
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics"
+  endpoint:
+    health:
+      show-details: "always"
+  tracing:
+    sampling:
+      probability: 1.0
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      propietarioService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{userIp}] %-5level %logger{36} - %msg%n"
